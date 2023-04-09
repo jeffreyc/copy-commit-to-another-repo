@@ -1,0 +1,27 @@
+name: 'Copy commits to another repo'
+author: 'Jeff Cousens'
+description: 'Copies all or part of a commit to another repository'
+inputs:
+  include:
+    description: 'Comma-separated list of regular expressions to include'
+    required: false
+  exclude:
+    description: 'Comma-separated list of regular expressions to exclude'
+    required: false
+  destination:
+    description: 'Destination repository'
+    required: true
+  branch:
+    description: "Branch to push changes to in the destination repository"
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.include }}
+    - ${{ inputs.exclude }}
+    - ${{ inputs.destination }}
+    - ${{ inputs.branch }}
+branding:
+  icon: 'copy'
+  color: 'white'

@@ -1,0 +1,98 @@
+name: Test Copy Commit
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  copy-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Copy Commit Action
+        uses: actions/checkout@v3
+      - name: Configure Git
+        run: |
+          git config --global user.email "user@host.domain"
+          git config --global user.name "Test User"
+      - name: Create Commit for No-Args Test
+        run: |
+          echo "no-args-1" > ${GITHUB_SHA}-no-args-1
+          echo "no-args-2" > ${GITHUB_SHA}-no-args-2
+          git add ${GITHUB_SHA}-no-args-1 ${GITHUB_SHA}-no-args-2
+          git commit -m "test no-args"
+      - name: Test Copy Commit with No Args
+        uses: ./
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Create Commit for Include Test
+        run: |
+          echo "include-1" > ${GITHUB_SHA}-include-1
+          echo "include-2" > ${GITHUB_SHA}-include-2
+          echo "include-3" > ${GITHUB_SHA}-include-3
+          git add ${GITHUB_SHA}-include-1 ${GITHUB_SHA}-include-2 ${GITHUB_SHA}-include-3
+          git commit -m "test include"
+      - name: Test Copy Commit with Include
+        uses: ./
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+          include: "${{ github.sha }}-include-1,${{ github.sha }}-include-2"
+      - name: Create Commit for Exclude Test
+        run: |
+          echo "exclude-1" > ${GITHUB_SHA}-exclude-1
+          echo "exclude-2" > ${GITHUB_SHA}-exclude-2
+          echo "exclude-3" > ${GITHUB_SHA}-exclude-3
+          git add ${GITHUB_SHA}-exclude-1 ${GITHUB_SHA}-exclude-2 ${GITHUB_SHA}-exclude-3
+          git commit -m "test exclude"
+      - name: Test Copy Commit with Exclude
+        uses: ./
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+          exclude: "${{ github.sha }}-exclude-1,${{ github.sha }}-exclude-3"
+      - name: Create Commit for Include-and-Exclude Test
+        run: |
+          echo "include-and-exclude-1" > ${GITHUB_SHA}-include-and-exclude-1
+          echo "include-and-exclude-2" > ${GITHUB_SHA}-include-and-exclude-2
+          echo "include-and-exclude-3" > ${GITHUB_SHA}-include-and-exclude-3
+          git add ${GITHUB_SHA}-include-and-exclude-1 ${GITHUB_SHA}-include-and-exclude-2 ${GITHUB_SHA}-include-and-exclude-3
+          git commit -m "test include and exclude"
+      - name: Test Copy Commit with Include and Exclude
+        uses: ./
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+          exclude: "${{ github.sha }}-include-and-exclude-1,${{ github.sha }}-include-and-exclude-3"
+          include: "${{ github.sha }}-include-and-exclude-1,${{ github.sha }}-include-and-exclude-2"
+#      - name: Create Commit for Branch Test
+#        run: |
+#          echo "branch-1" > ${GITHUB_SHA}-branch-1
+#          git add ${GITHUB_SHA}-branch-1
+#          git commit -m "test branch"
+#      - name: Test Copy Commit with Branch
+#        uses: ./
+#        env:
+#          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+#        with:
+#          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+#          branch: "TODO"
+      - name: Checkout Test Destination
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 5
+          path: test
+          repository: 'jeffreyc/copy-commit-to-another-repo-test'
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - name: Verify Commits
+        run: python test_action.py
