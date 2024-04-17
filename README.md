@@ -38,9 +38,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Copy Commit
-        uses: jeffreyc/copy-commit-to-another-repo@v1.0.0
+        uses: jeffreyc/copy-commit-to-another-repo@v1.1.0
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
@@ -50,7 +50,9 @@ jobs:
           branch: 'staging'
 ```
 
-_n.b._, you must specify `fetch-depth: 2` for the `Checkout` action, else git will be unable to determine what has changed.
+_n.b._, as of version 1.1.0, setting `fetch-depth: 0` is strongly recommended.
+At most, `fetch-depth - 1` commits will be copied (_e.g._, `fetch-depth: 2` will copy one commit).
+If the action runs on more than `fetch-depth - 1` commits (_e.g._, commit -> commit -> push with `fetch-depth: 2`), the action will fail and no commits will be copied.
 
 ## License
 

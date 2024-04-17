@@ -20,6 +20,9 @@ jobs:
         run: |
           git config --global user.email "user@host.domain"
           git config --global user.name "Test User"
+      - name: Capture Before SHA
+        id: before
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Create Commit for No-Args Test
         run: |
           echo "no-args-1" > ${GITHUB_SHA}-no-args-1
@@ -29,9 +32,121 @@ jobs:
       - name: Test Copy Commit with No Args
         uses: ./
         env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Reset Commit from No-Args Test
+        run: |
+          git reset --hard HEAD~1
+      - name: Create Commit for Nonexistent-Before Test
+        run: |
+          echo "nonexistent-before" > ${GITHUB_SHA}-nonexistent-before
+          git add ${GITHUB_SHA}-nonexistent-before
+          git commit -m "test nonexistent-before"
+      - name: Test Copy Commit with Nonexistent Before SHA
+        id: test-nonexistent-before
+        continue-on-error: true
+        uses: ./
+        env:
+          GITHUB_EVENT_BEFORE: "0000000000000000000000000000000000000001"
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Verify Nonexistent Before SHA Failed
+        run: |
+          if [ "${{ steps.test-nonexistent-before.outcome }}" != "failure" ]; then
+            echo "Expected action to fail with nonexistent before SHA"
+            exit 1
+          fi
+      - name: Reset Commit from Nonexistent-Before Test
+        run: |
+          git reset --hard HEAD~1
+      - name: Create Commits for Zero-SHA Test
+        run: |
+          echo "zero-sha-1" > ${GITHUB_SHA}-zero-sha-1
+          git add ${GITHUB_SHA}-zero-sha-1
+          git commit -m "test zero-sha - first commit"
+          echo "zero-sha-2" > ${GITHUB_SHA}-zero-sha-2
+          git add ${GITHUB_SHA}-zero-sha-2
+          git commit -m "test zero-sha - second commit"
+      - name: Test Copy Commit with Zero SHA
+        uses: ./
+        env:
+          GITHUB_EVENT_BEFORE: "0000000000000000000000000000000000000000"
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Reset Commits from Zero-SHA Test
+        run: |
+          git reset --hard HEAD~2
+      - name: Create Commits for Multiple-Commits Test
+        run: |
+          echo "multiple-commits-1a" > ${GITHUB_SHA}-multiple-commits-1
+          echo "multiple-commits-2" > ${GITHUB_SHA}-multiple-commits-2
+          git add ${GITHUB_SHA}-multiple-commits-1 ${GITHUB_SHA}-multiple-commits-2
+          git commit -m "test multiple-commits - first commit"
+          echo "multiple-commits-1b" > ${GITHUB_SHA}-multiple-commits-1
+          echo "multiple-commits-3" > ${GITHUB_SHA}-multiple-commits-3
+          git add ${GITHUB_SHA}-multiple-commits-1 ${GITHUB_SHA}-multiple-commits-3
+          git commit -m "test multiple-commits - second commit"
+      - name: Test Copy Commit with Multiple Commits
+        uses: ./
+        env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Reset Commits from Multiple-Commits Test
+        run: |
+          git reset --hard HEAD~2
+      - name: Configure Git for First Author
+        run: |
+          git config --global user.email "alternate@host.domain"
+          git config --global user.name "Alternate User"
+      - name: Create First Commit for Different-Authors Test
+        run: |
+          echo "different-authors-1" > ${GITHUB_SHA}-different-authors-1
+          git add ${GITHUB_SHA}-different-authors-1
+          git commit -m "test different-authors - first commit"
+      - name: Reconfigure Git
+        run: |
+          git config --global user.email "user@host.domain"
+          git config --global user.name "Test User"
+      - name: Create Second Commit for Different-Authors Test
+        run: |
+          echo "different-authors-2" > ${GITHUB_SHA}-different-authors-2
+          git add ${GITHUB_SHA}-different-authors-2
+          git commit -m "test different-authors - second commit"
+      - name: Test Copy Commit with Different Authors
+        uses: ./
+        env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Reset Commits from Different-Authors Test
+        run: |
+          git reset --hard HEAD~2
+      - name: Create Commits for Partial-Filter Test
+        run: |
+          echo "partial-filter-1" > ${GITHUB_SHA}-partial-filter-1
+          git add ${GITHUB_SHA}-partial-filter-1
+          git commit -m "test partial-filter - included commit"
+          echo "partial-filter-2" > ${GITHUB_SHA}-partial-filter-2
+          git add ${GITHUB_SHA}-partial-filter-2
+          git commit -m "test partial-filter - excluded commit"
+      - name: Test Copy Commit with Partial Filter
+        uses: ./
+        env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+          include: "${{ github.sha }}-partial-filter-1"
+      - name: Reset Commits from Partial-Filter Test
+        run: |
+          git reset --hard HEAD~2
       - name: Create Commit for Include Test
         run: |
           echo "include-1" > ${GITHUB_SHA}-include-1
@@ -42,10 +157,14 @@ jobs:
       - name: Test Copy Commit with Include
         uses: ./
         env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           destination: 'jeffreyc/copy-commit-to-another-repo-test'
           include: "${{ github.sha }}-include-1,${{ github.sha }}-include-2"
+      - name: Reset Commit from Include Test
+        run: |
+          git reset --hard HEAD~1
       - name: Create Commit for Exclude Test
         run: |
           echo "exclude-1" > ${GITHUB_SHA}-exclude-1
@@ -56,10 +175,14 @@ jobs:
       - name: Test Copy Commit with Exclude
         uses: ./
         env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           destination: 'jeffreyc/copy-commit-to-another-repo-test'
           exclude: "${{ github.sha }}-exclude-1,${{ github.sha }}-exclude-3"
+      - name: Reset Commit from Exclude Test
+        run: |
+          git reset --hard HEAD~1
       - name: Create Commit for Include-and-Exclude Test
         run: |
           echo "include-and-exclude-1" > ${GITHUB_SHA}-include-and-exclude-1
@@ -70,11 +193,15 @@ jobs:
       - name: Test Copy Commit with Include and Exclude
         uses: ./
         env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           destination: 'jeffreyc/copy-commit-to-another-repo-test'
           exclude: "${{ github.sha }}-include-and-exclude-1,${{ github.sha }}-include-and-exclude-3"
           include: "${{ github.sha }}-include-and-exclude-1,${{ github.sha }}-include-and-exclude-2"
+      - name: Reset Commit from Include-and-Exclude Test
+        run: |
+          git reset --hard HEAD~1
 #      - name: Create Commit for Branch Test
 #        run: |
 #          echo "branch-1" > ${GITHUB_SHA}-branch-1
@@ -83,14 +210,18 @@ jobs:
 #      - name: Test Copy Commit with Branch
 #        uses: ./
 #        env:
+#          GITHUB_EVENT_BEFORE: ${{ steps.before.outputs.sha }}
 #          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 #        with:
 #          destination: 'jeffreyc/copy-commit-to-another-repo-test'
 #          branch: "TODO"
+#      - name: Reset Commit from Branch Test
+#        run: |
+#          git reset --hard HEAD~1
       - name: Checkout Test Destination
         uses: actions/checkout@v3
         with:
-          fetch-depth: 5
+          fetch-depth: 11
           path: test
           repository: 'jeffreyc/copy-commit-to-another-repo-test'
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
