@@ -136,7 +136,12 @@ class CopyCommit:
 
             if applied:
                 self.run("git log -2", tmpdir)
-                self.run("git push -u origin", tmpdir)
+                try:
+                    self.run("git push -u origin", tmpdir)
+                except subprocess.CalledProcessError:
+                    self.logger.info("Push failed, pulling and retrying...")
+                    self.run("git pull --rebase", tmpdir)
+                    self.run("git push -u origin", tmpdir)
 
 
 if __name__ == "__main__":
