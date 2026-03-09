@@ -46,10 +46,10 @@ class CopyCommit:
         try:
             ret = subprocess.check_output(
                 cmd, stderr=subprocess.STDOUT, shell=True, cwd=cwd
-            ).decode("ascii")
+            ).decode("utf-8")
         except subprocess.CalledProcessError as e:
             self.logger.critical(
-                "Exception on process, rc=", e.returncode, "output=", e.output
+                f"Exception on process, rc={e.returncode}, output={e.output}"
             )
             raise
         self.logger.info(ret)
