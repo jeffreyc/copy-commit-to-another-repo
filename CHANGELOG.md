@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-08
+
 ### Added
 
 * [#1] - add support for copying multiple commits per push
@@ -23,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 * Initial Release
 
-[unreleased]: https://github.com/jeffreyc/copy-commit-to-another-repo/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/jeffreyc/copy-commit-to-another-repo/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jeffreyc/copy-commit-to-another-repo/releases/tag/v1.1.0
 [#7]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/7
 [#5]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/5
 [#4]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/4
