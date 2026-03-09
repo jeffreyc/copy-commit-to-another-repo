@@ -11,10 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 * [#1] - add support for copying multiple commits per push
 
+### Fixed
+
+* [#2] - fix KeyError crash when optional env vars are absent
+
 ## [1.0.0] - 2023-04-11
 
 * Initial Release
 
 [unreleased]: https://github.com/jeffreyc/copy-commit-to-another-repo/compare/v1.0.0...HEAD
+[#2]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/2
 [#1]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/1
 [1.0.0]: https://github.com/jeffreyc/copy-commit-to-another-repo/releases/tag/v1.0.0

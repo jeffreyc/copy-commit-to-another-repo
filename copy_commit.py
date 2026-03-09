@@ -36,7 +36,7 @@ class CopyCommit:
         return (list(reader) or [[]])[0]
 
     def require(self, var: str, name: str) -> str:
-        if not os.environ[var]:
+        if not os.environ.get(var):
             self.logger.critical(f"{name} must be specified")
             sys.exit(1)
         return os.environ[var].strip()
@@ -78,20 +78,20 @@ class CopyCommit:
 
         excluded = [
             re.compile(pattern)
-            for pattern in self.parse_csv(os.environ["INPUT_EXCLUDE"])
+            for pattern in self.parse_csv(os.environ.get("INPUT_EXCLUDE", ""))
             if pattern
         ]
         self.logger.debug(f"excluded: {excluded}")
         included = [
             re.compile(pattern)
-            for pattern in self.parse_csv(os.environ["INPUT_INCLUDE"])
+            for pattern in self.parse_csv(os.environ.get("INPUT_INCLUDE", ""))
             if pattern
         ]
         self.logger.debug(f"included: {included}")
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            if os.environ["INPUT_BRANCH"]:
-                branch = os.environ["INPUT_BRANCH"]
+            branch = os.environ.get("INPUT_BRANCH")
+            if branch:
                 self.run(
                     f'git clone --single-branch --branch {branch} "https://x-access-token:{token}@github.com/{destination}.git" "{tmpdir}"'
                 )
