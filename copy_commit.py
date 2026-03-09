@@ -109,7 +109,7 @@ class CopyCommit:
                 self.run(f'git config --global user.email "{email}"')
 
                 modified = self.run(
-                    f"git diff-tree --no-commit-id --name-only {sha} -r"
+                    f"git diff-tree --no-commit-id --name-only --root {sha} -r"
                 ).split()
                 self.logger.debug(f"commit {sha} modified: {modified}")
 
