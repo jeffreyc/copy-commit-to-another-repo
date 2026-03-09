@@ -32,7 +32,7 @@ class CopyCommit:
 
     def parse_csv(self, to_parse: str) -> list[str]:
         f = io.StringIO(to_parse)
-        reader = csv.reader(f, delimiter=",")
+        reader = csv.reader(f, delimiter=",", skipinitialspace=True)
         return (list(reader) or [[]])[0]
 
     def require(self, var: str, name: str) -> str:
@@ -61,7 +61,7 @@ class CopyCommit:
 
         self.run(f"git config --global --add safe.directory {self.cwd}")
 
-        before = os.environ["GITHUB_EVENT_BEFORE"]
+        before = os.environ.get("GITHUB_EVENT_BEFORE", "")
         zero_sha = "0" * 40
         if before and before != zero_sha:
             commits = self.run(
@@ -124,10 +124,14 @@ class CopyCommit:
 
                 if keep:
                     keep_str = " ".join(keep)
-                    self.run(
-                        f"git --git-dir={self.cwd}/.git format-patch -k -1 --stdout {sha} -- {keep_str} | git am -3 -k",
-                        tmpdir,
-                    )
+                    try:
+                        self.run(
+                            f"git --git-dir={self.cwd}/.git format-patch -k -1 --stdout {sha} -- {keep_str} | git am -3 -k",
+                            tmpdir,
+                        )
+                    except subprocess.CalledProcessError:
+                        self.run("git am --abort", tmpdir)
+                        raise
                     applied = True
                 else:
                     self.logger.info(

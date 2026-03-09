@@ -15,7 +15,7 @@ class TestAction(unittest.TestCase):
 
     def get_changed_files(self, rev):
         return self.cc.run(
-            f"git diff-tree --no-commit-id --name-only {rev} -r", self.repo_path
+            f"git diff-tree --no-commit-id --name-only --root {rev} -r", self.repo_path
         ).split()
 
     def test_branch(self):
