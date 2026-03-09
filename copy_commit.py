@@ -61,11 +61,20 @@ class CopyCommit:
 
         self.run(f"git config --global --add safe.directory {self.cwd}")
 
-        username = self.run("git log --pretty=format:%an -1")
-        self.run(f'git config --global user.name "{username}"')
+        before = os.environ["GITHUB_EVENT_BEFORE"]
+        zero_sha = "0" * 40
+        if before and before != zero_sha:
+            commits = self.run(
+                f"git log --pretty=format:%H --reverse {before}..HEAD"
+            ).split()
+        else:
+            commits = self.run("git log --pretty=format:%H -1").split()
 
-        email = self.run("git log --pretty=format:%ae -1")
-        self.run(f'git config --global user.email "{email}"')
+        self.logger.debug(f"commits to process: {commits}")
+
+        if not commits:
+            self.logger.info("No commits in range, nothing to apply.")
+            return
 
         excluded = [
             re.compile(pattern)
@@ -91,33 +100,43 @@ class CopyCommit:
                     f'git clone --single-branch "https://x-access-token:{token}@github.com/{destination}.git" "{tmpdir}"'
                 )
 
-            modified = self.run(
-                f"git diff-tree --no-commit-id --name-only HEAD -r"
-            ).split()
+            applied = False
+            for sha in commits:
+                username = self.run(f"git log --pretty=format:%an -1 {sha}")
+                self.run(f'git config --global user.name "{username}"')
 
-            self.logger.debug(f"modified: {modified}")
+                email = self.run(f"git log --pretty=format:%ae -1 {sha}")
+                self.run(f'git config --global user.email "{email}"')
 
-            keep = []
-            for item in modified:
-                if (not included or self.match(item, included)) and (
-                    not excluded or not self.match(item, excluded)
-                ):
-                    keep.append(item)
+                modified = self.run(
+                    f"git diff-tree --no-commit-id --name-only {sha} -r"
+                ).split()
+                self.logger.debug(f"commit {sha} modified: {modified}")
 
-            self.logger.debug(f"keep: {keep}")
+                keep = []
+                for item in modified:
+                    if (not included or self.match(item, included)) and (
+                        not excluded or not self.match(item, excluded)
+                    ):
+                        keep.append(item)
 
-            if keep:
-                keep = " ".join(keep)
-                self.run(
-                    f"git --git-dir={self.cwd}/.git format-patch -k -1 --stdout HEAD -- {keep} | git am -3 -k",
-                    tmpdir,
-                )
+                self.logger.debug(f"commit {sha} keep: {keep}")
+
+                if keep:
+                    keep_str = " ".join(keep)
+                    self.run(
+                        f"git --git-dir={self.cwd}/.git format-patch -k -1 --stdout {sha} -- {keep_str} | git am -3 -k",
+                        tmpdir,
+                    )
+                    applied = True
+                else:
+                    self.logger.info(
+                        f"Commit {sha}: all files excluded or no files included, skipping."
+                    )
+
+            if applied:
                 self.run("git log -2", tmpdir)
                 self.run("git push -u origin", tmpdir)
-            else:
-                self.logger.info(
-                    "All files excluded or no files included, nothing to apply."
-                )
 
 
 if __name__ == "__main__":
