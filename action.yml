@@ -22,8 +22,6 @@ runs:
     - ${{ inputs.exclude }}
     - ${{ inputs.destination }}
     - ${{ inputs.branch }}
-  env:
-    GITHUB_EVENT_BEFORE: ${{ github.event.before }}
 branding:
   icon: 'copy'
   color: 'white'
