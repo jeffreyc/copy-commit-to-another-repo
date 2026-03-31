@@ -2,6 +2,7 @@
 
 import csv
 import io
+import json
 import logging
 import os
 import re
@@ -62,6 +63,11 @@ class CopyCommit:
         self.run(f"git config --global --add safe.directory {self.cwd}")
 
         before = os.environ.get("GITHUB_EVENT_BEFORE", "")
+        if not before:
+            event_path = os.environ.get("GITHUB_EVENT_PATH", "")
+            if event_path and os.path.isfile(event_path):
+                with open(event_path) as f:
+                    before = json.load(f).get("before", "")
         zero_sha = "0" * 40
         if before and before != zero_sha:
             commits = self.run(
