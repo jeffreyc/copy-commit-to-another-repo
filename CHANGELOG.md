@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-03-30
+
 ### Fixed
 
 * [#9] - fix `action.yml` failing to load due to unsupported `github` context
@@ -29,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 * Initial Release
 
-[unreleased]: https://github.com/jeffreyc/copy-commit-to-another-repo/compare/v1.1.0...HEAD
+[unreleased]: https://github.com/jeffreyc/copy-commit-to-another-repo/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/jeffreyc/copy-commit-to-another-repo/releases/tag/v1.1.1
 [#9]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/9
 [1.1.0]: https://github.com/jeffreyc/copy-commit-to-another-repo/releases/tag/v1.1.0
 [#7]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/7
