@@ -23,11 +23,15 @@ class TestAction(unittest.TestCase):
         pass
 
     def test_different_authors(self):
-        author = self.cc.run("git log --format='%an <%ae>' -1 HEAD~5", self.repo_path).strip()
+        author = self.cc.run(
+            "git log --format='%an <%ae>' -1 HEAD~5", self.repo_path
+        ).strip()
         self.assertEqual("Alternate User <alternate@host.domain>", author)
         changed = self.get_changed_files("HEAD~5")
         self.assertIn(f"{self.sha}-different-authors-1", changed)
-        author = self.cc.run("git log --format='%an <%ae>' -1 HEAD~4", self.repo_path).strip()
+        author = self.cc.run(
+            "git log --format='%an <%ae>' -1 HEAD~4", self.repo_path
+        ).strip()
         self.assertEqual("Test User <user@host.domain>", author)
         changed = self.get_changed_files("HEAD~4")
         self.assertIn(f"{self.sha}-different-authors-2", changed)
@@ -58,18 +62,22 @@ class TestAction(unittest.TestCase):
         changed = self.get_changed_files("HEAD~6")
         self.assertIn(f"{self.sha}-multiple-commits-1", changed)
         self.assertIn(f"{self.sha}-multiple-commits-3", changed)
-        contents = self.cc.run(f"git show HEAD~6:{self.sha}-multiple-commits-1", self.repo_path).strip()
+        contents = self.cc.run(
+            f"git show HEAD~6:{self.sha}-multiple-commits-1", self.repo_path
+        ).strip()
         self.assertEqual("multiple-commits-1b", contents)
         changed = self.get_changed_files("HEAD~7")
         self.assertIn(f"{self.sha}-multiple-commits-1", changed)
         self.assertIn(f"{self.sha}-multiple-commits-2", changed)
-        contents = self.cc.run(f"git show HEAD~7:{self.sha}-multiple-commits-1", self.repo_path).strip()
+        contents = self.cc.run(
+            f"git show HEAD~7:{self.sha}-multiple-commits-1", self.repo_path
+        ).strip()
         self.assertEqual("multiple-commits-1a", contents)
 
     def test_nonexistent_before(self):
         result = self.cc.run(
             f"git log --pretty=format:%H -- {self.sha}-nonexistent-before",
-            self.repo_path
+            self.repo_path,
         ).strip()
         self.assertEqual("", result)
 
@@ -77,9 +85,13 @@ class TestAction(unittest.TestCase):
         changed = self.get_changed_files("HEAD~10")
         self.assertIn(f"{self.sha}-no-args-1", changed)
         self.assertIn(f"{self.sha}-no-args-2", changed)
-        author = self.cc.run("git log --format='%an <%ae>' -1 HEAD~10", self.repo_path).strip()
+        author = self.cc.run(
+            "git log --format='%an <%ae>' -1 HEAD~10", self.repo_path
+        ).strip()
         self.assertEqual("Test User <user@host.domain>", author)
-        raw_body = self.cc.run("git log --format='%B' -1 HEAD~10", self.repo_path).strip()
+        raw_body = self.cc.run(
+            "git log --format='%B' -1 HEAD~10", self.repo_path
+        ).strip()
         self.assertEqual("test no-args", raw_body)
 
     def test_partial_filter(self):
