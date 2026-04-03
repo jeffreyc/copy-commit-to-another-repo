@@ -32,6 +32,15 @@ class TestAction(unittest.TestCase):
         changed = self.get_changed_files("HEAD~4")
         self.assertIn(f"{self.sha}-different-authors-2", changed)
 
+    def test_duplicate_detection(self):
+        result = self.cc.run(
+            f"git log --all --oneline --grep='test duplicate detection' --fixed-strings",
+            self.repo_path,
+        ).strip()
+        self.assertEqual(1, len(result.splitlines()))
+        changed = self.get_changed_files("HEAD~9")
+        self.assertIn(f"{self.sha}-duplicate-1", changed)
+
     def test_exclude(self):
         changed = self.get_changed_files("HEAD~1")
         self.assertIn(f"{self.sha}-exclude-2", changed)
@@ -65,12 +74,12 @@ class TestAction(unittest.TestCase):
         self.assertEqual("", result)
 
     def test_no_args(self):
-        changed = self.get_changed_files("HEAD~9")
+        changed = self.get_changed_files("HEAD~10")
         self.assertIn(f"{self.sha}-no-args-1", changed)
         self.assertIn(f"{self.sha}-no-args-2", changed)
-        author = self.cc.run("git log --format='%an <%ae>' -1 HEAD~9", self.repo_path).strip()
+        author = self.cc.run("git log --format='%an <%ae>' -1 HEAD~10", self.repo_path).strip()
         self.assertEqual("Test User <user@host.domain>", author)
-        raw_body = self.cc.run("git log --format='%B' -1 HEAD~9", self.repo_path).strip()
+        raw_body = self.cc.run("git log --format='%B' -1 HEAD~10", self.repo_path).strip()
         self.assertEqual("test no-args", raw_body)
 
     def test_partial_filter(self):

@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -55,6 +56,44 @@ class CopyCommit:
             raise
         self.logger.info(ret)
         return ret
+
+    def is_duplicate(self, sha: str, dest_dir: str) -> bool:
+        """Check if a commit with matching metadata already exists in destination."""
+        source_info = self.run(
+            f"git log --pretty=format:%an%x00%ae%x00%aI%x00%s -1 {sha}"
+        )
+        parts = source_info.split("\x00")
+        if len(parts) != 4:
+            return False
+        author_name, author_email, author_date, subject = parts
+
+        matches = self.run(
+            f"git log --all --pretty=format:%an%x00%ae%x00%aI%x00%s%x00%x00"
+            f" --fixed-strings --grep={shlex.quote(subject)}"
+            f" --author={shlex.quote(author_email)}",
+            dest_dir,
+        ).strip()
+
+        if not matches:
+            return False
+
+        for entry in matches.split("\x00\x00"):
+            entry = entry.strip()
+            if not entry:
+                continue
+            entry_parts = entry.split("\x00")
+            if len(entry_parts) != 4:
+                continue
+            dest_name, dest_email, dest_date, dest_subject = entry_parts
+            if (
+                dest_name == author_name
+                and dest_email == author_email
+                and dest_date == author_date
+                and dest_subject == subject
+            ):
+                return True
+
+        return False
 
     def main(self) -> None:
         token = self.require("PERSONAL_ACCESS_TOKEN", "PERSONAL_ACCESS_TOKEN")
@@ -129,6 +168,17 @@ class CopyCommit:
                 self.logger.debug(f"commit {sha} keep: {keep}")
 
                 if keep:
+                    try:
+                        if self.is_duplicate(sha, tmpdir):
+                            self.logger.info(
+                                f"Commit {sha}: already exists in destination, skipping."
+                            )
+                            continue
+                    except subprocess.CalledProcessError:
+                        self.logger.info(
+                            f"Commit {sha}: duplicate check failed, proceeding with copy."
+                        )
+
                     keep_str = " ".join(keep)
                     try:
                         self.run(
