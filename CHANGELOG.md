@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+* [#11] - skip commits that already exist in the destination repository
+
 ## [1.1.1] - 2026-03-30
 
 ### Fixed
@@ -32,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 * Initial Release
 
 [unreleased]: https://github.com/jeffreyc/copy-commit-to-another-repo/compare/v1.1.1...HEAD
+[#11]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/11
 [1.1.1]: https://github.com/jeffreyc/copy-commit-to-another-repo/releases/tag/v1.1.1
 [#9]: https://github.com/jeffreyc/copy-commit-to-another-repo/pull/9
 [1.1.0]: https://github.com/jeffreyc/copy-commit-to-another-repo/releases/tag/v1.1.0

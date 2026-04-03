@@ -39,6 +39,31 @@ jobs:
       - name: Reset Commit from No-Args Test
         run: |
           git reset --hard HEAD~1
+      - name: Capture Before SHA for Duplicate-Detection Test
+        id: before-duplicate
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      - name: Create Commit for Duplicate-Detection Test
+        run: |
+          echo "duplicate-1" > ${GITHUB_SHA}-duplicate-1
+          git add ${GITHUB_SHA}-duplicate-1
+          git commit -m "test duplicate detection"
+      - name: Test Copy Commit for Duplicate Detection (First Copy)
+        uses: ./
+        env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before-duplicate.outputs.sha }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Test Copy Commit for Duplicate Detection (Second Copy - Should Skip)
+        uses: ./
+        env:
+          GITHUB_EVENT_BEFORE: ${{ steps.before-duplicate.outputs.sha }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          destination: 'jeffreyc/copy-commit-to-another-repo-test'
+      - name: Reset Commit from Duplicate-Detection Test
+        run: |
+          git reset --hard HEAD~1
       - name: Create Commit for Nonexistent-Before Test
         run: |
           echo "nonexistent-before" > ${GITHUB_SHA}-nonexistent-before
@@ -221,7 +246,7 @@ jobs:
       - name: Checkout Test Destination
         uses: actions/checkout@v6
         with:
-          fetch-depth: 11
+          fetch-depth: 12
           path: test
           repository: 'jeffreyc/copy-commit-to-another-repo-test'
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

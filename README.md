@@ -10,7 +10,7 @@ The intent is to enable keeping two isolated repositories in sync; _e.g._, you h
 - `PERSONAL_ACCESS_TOKEN` - this needs to be set under `Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret` on the source repository.
   Create a token under `Settings` -> `Developer settings` -> `Personal access tokens` -> `Tokens (classic)` or `Fine-grained tokens`.
   The token will need `repo` permissions (classic) or `Repository permissions` -> `Contents` permissions (fine-grained).
-  
+
 ### Inputs
 
 - `destination` - the repository to copy commits to.
